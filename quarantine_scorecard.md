@@ -1,6 +1,6 @@
 # Quarantine Scorecard
 
-_Generated: 2026-07-15 07:38:01 UTC_
+_Generated: 2026-07-15 08:40:23 UTC_
 
 Two-checkpoint Immune System crash-test. The claim is not only *danger detected* — it is **danger detected before tool execution** (`Tool Executed = No`).
 
