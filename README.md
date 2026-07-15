@@ -18,7 +18,7 @@
 
 ## 🚀 LIVE PROJECT
 
-### 👉 **[https://intervue-ai-navy.vercel.app/](https://intervue-ai-navy.vercel.app/)**
+### 👉 **[https://ai-project-4i3b.onrender.com/](https://ai-project-4i3b.onrender.com/)**
 
 <br/>
 
