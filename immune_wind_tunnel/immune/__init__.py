@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from immune_wind_tunnel.immune.backends import (
+    check_gemini_action,
     check_gemini_input,
     check_openai_action,
     check_openai_input,
@@ -34,12 +35,21 @@ def check_action(action: str, arguments: dict[str, Any] | None = None) -> tuple[
     arguments = arguments or {}
     # Spec allowlist is the source of truth for the demo (deterministic + explainable)
     rules_verdict = check_rules_action(action, arguments)
+    if rules_verdict == "QUARANTINE":
+        return "QUARANTINE", "spec-allowlist"
 
     # Optional LLM second opinion (does not override QUARANTINE from rules)
-    llm = check_openai_action(action, arguments)
-    if llm is not None and rules_verdict == "ALLOW" and llm == "QUARANTINE":
-        return "QUARANTINE", "openai-action"
-    return rules_verdict, "spec-allowlist"
+    for checker, name in (
+        (check_openai_action, "openai-action"),
+        (check_gemini_action, "gemini-action"),
+    ):
+        llm = checker(action, arguments)
+        if llm is not None:
+            if llm == "QUARANTINE":
+                return "QUARANTINE", name
+            break
+
+    return "ALLOW", "spec-allowlist"
 
 
 # Backwards-compatible name → input checkpoint

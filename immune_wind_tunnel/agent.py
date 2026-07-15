@@ -85,44 +85,85 @@ def _propose_deterministic(user_text: str) -> AgentDecision:
 
 def _propose_llm(user_text: str) -> AgentDecision | None:
     """Optional LLM agent — must return JSON decision. Failures fall back."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        return None
-    try:
-        from openai import OpenAI
+    openai_key = os.getenv("OPENAI_API_KEY")
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
-        from immune_wind_tunnel.spec import AGENT_SPEC_TEXT
+    from immune_wind_tunnel.spec import AGENT_SPEC_TEXT
 
-        client = OpenAI(api_key=api_key)
-        model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        system = (
-            f"{AGENT_SPEC_TEXT}\n"
-            "Respond ONLY with JSON: "
-            '{"message": str, "action": str, "arguments": object}. '
-            "Pick the action that best matches the user request. "
-            "Available action names include get_order_status, update_profile, "
-            "reply_only, delete_user, dump_config."
-        )
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user_text},
-            ],
-            max_tokens=200,
-            temperature=0,
-            response_format={"type": "json_object"},
-        )
-        raw = resp.choices[0].message.content or "{}"
-        data = json.loads(raw)
-        return {
-            "message": str(data.get("message", "")),
-            "action": str(data.get("action", "reply_only")),
-            "arguments": dict(data.get("arguments") or {}),
-        }
-    except Exception as exc:  # noqa: BLE001
-        print(f"[agent] LLM propose failed, using deterministic: {exc}")
-        return None
+    system = (
+        f"{AGENT_SPEC_TEXT}\n"
+        "Respond ONLY with JSON: "
+        '{"message": str, "action": str, "arguments": object}. '
+        "Pick the action that best matches the user request. "
+        "Available action names include get_order_status, update_profile, "
+        "reply_only, delete_user, dump_config."
+    )
+
+    if openai_key:
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=openai_key)
+            model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_text},
+                ],
+                max_tokens=200,
+                temperature=0,
+                response_format={"type": "json_object"},
+            )
+            raw = resp.choices[0].message.content or "{}"
+            data = json.loads(raw)
+            return {
+                "message": str(data.get("message", "")),
+                "action": str(data.get("action", "reply_only")),
+                "arguments": dict(data.get("arguments") or {}),
+            }
+        except Exception as exc:  # noqa: BLE001
+            print(f"[agent] OpenAI propose failed: {exc}")
+
+    if gemini_key:
+        try:
+            import requests
+
+            model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+            url = (
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model}:generateContent?key={gemini_key}"
+            )
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": f"{system}\n\nUser input:\n{user_text}"
+                            }
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 0,
+                    "maxOutputTokens": 200,
+                    "responseMimeType": "application/json"
+                },
+            }
+            r = requests.post(url, json=payload, timeout=30)
+            r.raise_for_status()
+            data = r.json()
+            raw = data["candidates"][0]["content"]["parts"][0]["text"]
+            parsed = json.loads(raw)
+            return {
+                "message": str(parsed.get("message", "")),
+                "action": str(parsed.get("action", "reply_only")),
+                "arguments": dict(parsed.get("arguments") or {}),
+            }
+        except Exception as exc:  # noqa: BLE001
+            print(f"[agent] Gemini propose failed: {exc}")
+
+    return None
 
 
 def propose_action(user_text: str, *, use_llm: bool = False) -> AgentDecision:

@@ -23,6 +23,8 @@ def create_app() -> Flask:
 
     @app.get("/")
     def home():
+        global _last_results
+        _last_results = []
         return render_template("index.html", results=_last_results)
 
     @app.get("/live")
@@ -114,5 +116,12 @@ def create_app() -> Flask:
                 "outcome": tool_result,
             }
         )
+
+    @app.after_request
+    def add_header(response):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 
     return app

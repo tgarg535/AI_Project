@@ -131,6 +131,41 @@ def check_openai_action(action: str, arguments: dict) -> str | None:
         return None
 
 
+def check_gemini_action(action: str, arguments: dict) -> str | None:
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        return None
+    try:
+        import requests
+
+        model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{model}:generateContent?key={api_key}"
+        )
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": f"{ACTION_GUARD_PROMPT}\n\nProposed Action Payload:\n{json.dumps({'action': action, 'arguments': arguments})}"
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {"temperature": 0, "maxOutputTokens": 16},
+        }
+        r = requests.post(url, json=payload, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        raw = data["candidates"][0]["content"]["parts"][0]["text"]
+        return normalize_verdict(raw)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[immune/action] Gemini error: {exc}")
+        return None
+
+
+
 def check_rules_action(action: str, arguments: dict | None = None) -> str:
     """Spec allowlist — strongest deterministic action gate."""
     _ = arguments
