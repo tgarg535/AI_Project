@@ -4,6 +4,26 @@ Hybrid **Track 1 (Agent Wind Tunnel)** + **Track 3 (Agent Immune System)**.
 
 The immune system inspects **what the agent is about to do**, not only the user text.
 
+## Architecture Flowchart
+
+```mermaid
+flowchart TD
+	U[User prompt] --> E{Entry point}
+	E -->|python app.py| UI[Flask UI\ncreate_app()]
+	E -->|python app.py --run| WT[Wind tunnel runner\nrun_wind_tunnel()]
+	UI --> P[API / live check]
+	WT --> P
+	P --> I[Input guard\ncheck_input(text)]
+	I -->|ALLOW| A[Agent decision\npropose_action(text)]
+	I -->|QUARANTINE| Q1[Stop before agent/tool]
+	A --> G[Action guard\ncheck_action(action, arguments)]
+	G -->|ALLOW| T[Mock tool execution\nexecute_tool()]
+	G -->|QUARANTINE| Q2[Freeze before execution]
+	T --> S[Scorecard / response\nwrite_scorecard()]
+	Q1 --> S
+	Q2 --> S
+```
+
 ```
 USER → INPUT GUARD → AGENT (structured action) → ACTION GUARD → EXEC / QUARANTINE
 ```

@@ -5,98 +5,206 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Live Prompt Test — Immune Wind Tunnel</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
     :root {
-      --bg0: #0b1220;
-      --bg1: #121c2f;
-      --ink: #e8eef9;
-      --muted: #93a4c3;
-      --ok: #2dd4a8;
-      --bad: #ff5c7a;
-      --line: rgba(255,255,255,.08);
-      --accent: #5b9dff;
-      --warn: #f5b942;
+      --void: #080b11;
+      --panel: #0e141d;
+      --panel-raised: #131b26;
+      --line: rgba(148,163,184,.14);
+      --line-hi: rgba(148,163,184,.28);
+      --ink: #eef3fb;
+      --muted: #7f92ad;
+      --dim: #4d5e78;
+
+      --safe: #35dc9a;
+      --safe-dim: rgba(53,220,154,.14);
+      --attack: #ff4d6d;
+      --attack-dim: rgba(255,77,109,.14);
+      --contain: #ffb648;
+      --signal: #49e6ff;
+      --signal-dim: rgba(73,230,255,.14);
+
+      --font-display: 'Space Grotesk', system-ui, sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
     }
+
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: var(--font-body);
       color: var(--ink);
       background:
-        radial-gradient(900px 500px at 10% -10%, #1a3a6a 0%, transparent 55%),
-        radial-gradient(700px 400px at 100% 0%, #3a1a3a 0%, transparent 50%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
+        radial-gradient(1100px 600px at 8% -12%, rgba(73,230,255,.08) 0%, transparent 55%),
+        radial-gradient(800px 500px at 100% 0%, rgba(255,77,109,.06) 0%, transparent 50%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, transparent 1px, transparent 40px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, transparent 1px, transparent 40px),
+        var(--void);
     }
-    main { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
-    h1 { font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 .4rem; letter-spacing: -.02em; }
-    .sub { color: var(--muted); margin: 0 0 1.5rem; line-height: 1.45; max-width: 52ch; }
+    main { max-width: 780px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
     .nav { margin-bottom: 1.5rem; }
     .nav a {
-      color: var(--accent); text-decoration: none; font-size: .9rem;
+      color: var(--signal); text-decoration: none; font-size: .86rem;
+      font-family: var(--font-mono); font-weight: 600; letter-spacing: .02em;
     }
     .nav a:hover { text-decoration: underline; }
-    label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: .45rem; text-transform: uppercase; letter-spacing: .04em; }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-family: var(--font-mono); font-size: .72rem; font-weight: 600;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--signal);
+      margin-bottom: 1rem;
+    }
+    .eyebrow .dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--signal);
+      animation: dotpulse 1.8s ease-in-out infinite;
+    }
+    @keyframes dotpulse {
+      0% { box-shadow: 0 0 0 0 rgba(73,230,255,.5); }
+      70% { box-shadow: 0 0 0 7px rgba(73,230,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(73,230,255,0); }
+    }
+
+    h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.1rem); margin: 0 0 .5rem; letter-spacing: -.02em; }
+    .sub { color: var(--muted); margin: 0 0 1.75rem; line-height: 1.6; max-width: 52ch; font-size: .96rem; }
+
+    label {
+      display: block; font-family: var(--font-mono); font-size: .68rem; color: var(--dim);
+      margin-bottom: .5rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 600;
+    }
     textarea {
       width: 100%; min-height: 120px; resize: vertical;
       border: 1px solid var(--line); border-radius: 12px;
-      background: rgba(0,0,0,.28); color: var(--ink);
-      padding: 1rem; font-size: 1rem; font-family: inherit; line-height: 1.45;
+      background: var(--panel); color: var(--ink);
+      padding: 1rem; font-size: .98rem; font-family: var(--font-body); line-height: 1.5;
+      transition: border-color .15s ease;
     }
-    textarea:focus { outline: 2px solid rgba(91,157,255,.45); outline-offset: 1px; }
-    .bar { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0 1.25rem; align-items: center; }
+    textarea::placeholder { color: var(--dim); }
+    textarea:focus { outline: none; border-color: var(--signal); box-shadow: 0 0 0 3px var(--signal-dim); }
+
+    .bar { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.1rem 0 1.25rem; align-items: center; }
     button, .chip {
-      border: 0; border-radius: 10px; padding: .75rem 1.15rem; font-weight: 650;
-      cursor: pointer; font-size: .95rem;
+      border: 0; border-radius: 10px; padding: .8rem 1.3rem; font-weight: 650;
+      cursor: pointer; font-size: .92rem; font-family: var(--font-body);
+      transition: transform .15s ease, opacity .15s ease, border-color .15s ease, color .15s ease;
     }
-    .go { background: var(--accent); color: #06101f; }
-    .go:disabled { opacity: .55; cursor: wait; }
-    .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.5rem; }
+    .go {
+      background: linear-gradient(135deg, var(--signal), #7cf0ff);
+      color: #04121a; box-shadow: 0 8px 24px -10px rgba(73,230,255,.55);
+    }
+    .go:hover:not(:disabled) { transform: translateY(-1px); }
+    .go:disabled { opacity: .55; cursor: wait; transform: none; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.75rem; }
     .chip {
-      background: rgba(255,255,255,.04); border: 1px solid var(--line);
-      color: var(--muted); font-weight: 500; font-size: .8rem; padding: .45rem .7rem;
+      background: var(--panel); border: 1px solid var(--line);
+      color: var(--muted); font-weight: 500; font-size: .78rem; padding: .5rem .75rem;
+      font-family: var(--font-mono);
     }
-    .chip:hover { color: var(--ink); border-color: rgba(91,157,255,.4); }
+    .chip:hover { color: var(--ink); border-color: var(--signal); }
+
+    /* ---------- Pipeline schematic (interactive) ---------- */
+    .pipeline {
+      position: relative; overflow: hidden;
+      display: flex; align-items: flex-start; gap: 0;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+      padding: 1.6rem 1rem 1.25rem;
+      margin: 0 0 1.5rem;
+    }
+    .stage { position: relative; z-index: 1; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: .55rem; width: 78px; }
+    .node {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-weight: 700; font-size: .7rem;
+      background: var(--panel-raised); border: 2px solid var(--line-hi); color: var(--dim);
+      transition: border-color .35s ease, color .35s ease, box-shadow .35s ease, background .35s ease, transform .35s ease;
+    }
+    .node.st-clear { border-color: var(--safe); color: var(--safe); background: var(--safe-dim); box-shadow: 0 0 0 4px var(--safe-dim); }
+    .node.st-active { border-color: var(--signal); color: var(--signal); background: var(--signal-dim); box-shadow: 0 0 0 4px var(--signal-dim); animation: activepulse 1s ease-in-out infinite; }
+    .node.st-blocked { border-color: var(--attack); color: var(--attack); background: var(--attack-dim); box-shadow: 0 0 0 4px var(--attack-dim); animation: shake .4s ease; }
+    .node.st-dead { opacity: .3; }
+    @keyframes activepulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+    .stage-label { font-family: var(--font-mono); font-size: .6rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); text-align: center; line-height: 1.35; }
+    .trace { flex: 1 1 auto; height: 2px; margin-top: 22px; min-width: 12px; background-image: repeating-linear-gradient(90deg, var(--line-hi) 0 7px, transparent 7px 13px); transition: background-image .35s ease; }
+    .trace.lit { background-image: repeating-linear-gradient(90deg, var(--signal) 0 7px, transparent 7px 13px); }
+    .trace.dead { opacity: .25; }
+
     .flash {
-      display: none; margin: 0 0 1.25rem; padding: 1rem 1.1rem; border-radius: 12px;
-      background: rgba(255,92,122,.12); border: 1px solid rgba(255,92,122,.45);
-      color: #ffc0cb; font-weight: 650;
+      display: none; margin: 0 0 1.25rem; padding: 1rem 1.15rem; border-radius: 12px;
+      background: var(--attack-dim); border: 1px solid rgba(255,77,109,.4);
+      color: #ffc7d1; font-weight: 600; font-family: var(--font-mono); font-size: .85rem;
     }
-    .flash.show { display: block; animation: pulse .9s ease-in-out 2; }
-    .flash.ok {
-      background: rgba(45,212,168,.12); border-color: rgba(45,212,168,.45); color: #a7f3d0;
+    .flash.show { display: block; animation: pulseflash .9s ease-in-out 2; }
+    .flash.ok { background: var(--safe-dim); border-color: rgba(53,220,154,.4); color: #baf7de; }
+    @keyframes pulseflash {
+      0%, 100% { box-shadow: 0 0 0 0 transparent; }
+      50% { box-shadow: 0 0 0 6px rgba(255,77,109,.16); }
     }
-    @keyframes pulse {
-      0%,100% { box-shadow: 0 0 0 0 transparent; }
-      50% { box-shadow: 0 0 0 6px rgba(255,92,122,.18); }
-    }
+
     .panel {
       display: none;
-      background: rgba(0,0,0,.22); border: 1px solid var(--line);
-      border-radius: 12px; padding: 1.15rem 1.2rem;
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 16px; padding: .3rem 1.25rem;
     }
     .panel.show { display: block; }
-    .panel h2 { margin: 0 0 1rem; font-size: 1rem; font-weight: 650; }
-    .row {
-      display: grid; grid-template-columns: 140px 1fr; gap: .5rem .75rem;
-      padding: .55rem 0; border-bottom: 1px solid var(--line); font-size: .92rem;
+    .panel-head { padding: 1rem 0 .6rem; }
+    .panel-head h2 {
+      margin: 0; font-family: var(--font-mono); font-size: .74rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
     }
-    .row:last-child { border-bottom: 0; }
-    .row .k { color: var(--muted); }
-    .allow { color: var(--ok); font-weight: 700; }
-    .quarantine { color: var(--bad); font-weight: 700; }
-    code { font-family: ui-monospace, Consolas, monospace; font-size: .88em; word-break: break-word; }
-    .err { color: var(--bad); margin-top: .75rem; display: none; }
+    .row {
+      display: grid; grid-template-columns: 150px 1fr; gap: .5rem .75rem;
+      padding: .7rem 0; border-bottom: 1px solid var(--line); font-size: .9rem;
+    }
+    .row:last-child { border-bottom: 0; padding-bottom: 1.1rem; }
+    .row .k { color: var(--dim); font-family: var(--font-mono); font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; padding-top: .1rem; }
+    .verdict-pill {
+      display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: .7rem; font-weight: 700;
+      letter-spacing: .04em; padding: .25rem .5rem; border-radius: 6px; text-transform: uppercase;
+    }
+    .verdict-pill.allow { color: var(--safe); background: var(--safe-dim); }
+    .verdict-pill.quarantine { color: var(--attack); background: var(--attack-dim); }
+    code { font-family: var(--font-mono); font-size: .86em; color: var(--ink); word-break: break-word; background: rgba(255,255,255,.03); padding: .12rem .4rem; border-radius: 5px; }
+    .tool-yes { color: var(--safe); font-weight: 700; font-family: var(--font-mono); }
+    .tool-no { color: var(--attack); font-weight: 700; font-family: var(--font-mono); }
+
+    .err { color: var(--attack); margin-top: .75rem; display: none; font-size: .88rem; font-family: var(--font-mono); }
     .err.show { display: block; }
+
+    @media (max-width: 560px) {
+      .pipeline { flex-wrap: wrap; row-gap: 1rem; }
+      .trace { display: none; }
+      .stage { width: 30%; }
+      .row { grid-template-columns: 1fr; gap: .2rem; }
+    }
   </style>
 </head>
 <body>
   <main>
     <p class="nav"><a href="/">← Back to Wind Tunnel</a></p>
+    <p class="eyebrow"><span class="dot"></span>Immune Telemetry — Single Request</p>
     <h1>Live Prompt Test</h1>
     <p class="sub">
       Type any support ticket. It runs through input guard → agent → action guard,
-      and shows whether the agent is frozen or allowed to execute.
+      and the schematic below lights up to show exactly where the agent was frozen or cleared to execute.
     </p>
+
+    <div class="pipeline" id="pipeline">
+      <div class="stage"><div class="node" data-node="user">U</div><div class="stage-label">User</div></div>
+      <div class="trace" data-trace="user-input"></div>
+      <div class="stage"><div class="node" data-node="input">IG</div><div class="stage-label">Input<br>Guard</div></div>
+      <div class="trace" data-trace="input-agent"></div>
+      <div class="stage"><div class="node" data-node="agent">A</div><div class="stage-label">Agent</div></div>
+      <div class="trace" data-trace="agent-action"></div>
+      <div class="stage"><div class="node" data-node="action">AG</div><div class="stage-label">Action<br>Guard</div></div>
+      <div class="trace" data-trace="action-exec"></div>
+      <div class="stage"><div class="node" data-node="exec">⚡</div><div class="stage-label">Exec /<br>Quarantine</div></div>
+    </div>
 
     <label for="prompt">User input</label>
     <textarea id="prompt" placeholder="e.g. Please clean up my old profile information."></textarea>
@@ -116,7 +224,7 @@
     <p class="err" id="err"></p>
 
     <div class="panel" id="panel">
-      <h2>Pipeline result</h2>
+      <div class="panel-head"><h2>Pipeline Result</h2></div>
       <div class="row"><span class="k">Input gate</span><span id="rInput">—</span></div>
       <div class="row"><span class="k">Proposed action</span><span id="rAction">—</span></div>
       <div class="row"><span class="k">Agent message</span><span id="rMsg">—</span></div>
@@ -143,7 +251,7 @@
 
     function verdictHtml(v) {
       if (!v) return '—';
-      return `<span class="${cls(v)}">${v}</span>`;
+      return `<span class="verdict-pill ${cls(v)}">${v}</span>`;
     }
 
     function outcomeText(outcome) {
@@ -151,6 +259,57 @@
       if (typeof outcome === 'string') return outcome;
       if (outcome.result) return outcome.result;
       return JSON.stringify(outcome);
+    }
+
+    function resetPipeline() {
+      document.querySelectorAll('.node').forEach(n => n.className = 'node');
+      document.querySelectorAll('.trace').forEach(t => t.className = 'trace');
+    }
+
+    function setNode(name, state) {
+      const el = document.querySelector(`.node[data-node="${name}"]`);
+      if (el) el.className = 'node' + (state ? ' st-' + state : '');
+    }
+    function setTrace(name, state) {
+      const el = document.querySelector(`.trace[data-trace="${name}"]`);
+      if (el) el.className = 'trace' + (state ? ' ' + state : '');
+    }
+
+    function animatePipeline(data) {
+      resetPipeline();
+      setNode('user', 'clear');
+
+      const inputBlocked = data.input_verdict === 'QUARANTINE';
+      setTrace('user-input', 'lit');
+      setNode('input', inputBlocked ? 'blocked' : 'clear');
+
+      if (inputBlocked) {
+        setTrace('input-agent', 'dead');
+        setNode('agent', 'dead');
+        setTrace('agent-action', 'dead');
+        setNode('action', 'dead');
+        setTrace('action-exec', 'dead');
+        setNode('exec', 'blocked');
+        return;
+      }
+
+      setTrace('input-agent', 'lit');
+      setNode('agent', data.proposed ? 'clear' : 'dead');
+
+      if (!data.proposed) {
+        setTrace('agent-action', 'dead');
+        setNode('action', 'dead');
+        setTrace('action-exec', 'dead');
+        setNode('exec', 'blocked');
+        return;
+      }
+
+      const actionBlocked = data.action_verdict === 'QUARANTINE';
+      setTrace('agent-action', 'lit');
+      setNode('action', actionBlocked ? 'blocked' : 'clear');
+
+      setTrace('action-exec', 'lit');
+      setNode('exec', actionBlocked ? 'blocked' : 'active');
     }
 
     async function runCheck() {
@@ -172,6 +331,7 @@
 
       btn.disabled = true;
       btn.textContent = 'Checking…';
+      resetPipeline();
       try {
         const res = await fetch('/api/check', {
           method: 'POST',
@@ -196,12 +356,14 @@
         document.getElementById('rBlocked').textContent = data.blocked_at || '—';
         document.getElementById('rTool').innerHTML =
           data.tool_executed
-            ? '<strong class="allow">Yes</strong>'
-            : '<strong class="quarantine">No</strong>';
+            ? '<strong class="tool-yes">Yes</strong>'
+            : '<strong class="tool-no">No</strong>';
         document.getElementById('rVerdict').innerHTML = verdictHtml(data.verdict);
         document.getElementById('rResult').textContent = data.result || '—';
         document.getElementById('rOutcome').textContent = outcomeText(data.outcome);
         panel.classList.add('show');
+
+        animatePipeline(data);
 
         if (data.verdict === 'QUARANTINE') {
           flash.textContent =
@@ -215,6 +377,7 @@
         err.textContent = 'Check failed: ' + e.message;
         err.classList.add('show');
         panel.classList.remove('show');
+        resetPipeline();
       } finally {
         btn.disabled = false;
         btn.textContent = 'Test Prompt';
