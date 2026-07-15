@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Immune Wind Tunnel</title>
+  <style>
+    :root {
+      --bg0: #0b1220;
+      --bg1: #121c2f;
+      --ink: #e8eef9;
+      --muted: #93a4c3;
+      --ok: #2dd4a8;
+      --bad: #ff5c7a;
+      --line: rgba(255,255,255,.08);
+      --accent: #5b9dff;
+      --warn: #f5b942;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 500px at 10% -10%, #1a3a6a 0%, transparent 55%),
+        radial-gradient(700px 400px at 100% 0%, #3a1a3a 0%, transparent 50%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+    }
+    main { max-width: 1080px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0 0 .4rem; letter-spacing: -.02em; }
+    .sub { color: var(--muted); margin: 0 0 1.75rem; line-height: 1.45; max-width: 62ch; }
+    .bar { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem; }
+    button {
+      border: 0; border-radius: 10px; padding: .75rem 1.15rem; font-weight: 650;
+      cursor: pointer; font-size: .95rem;
+    }
+    .go { background: var(--accent); color: #06101f; }
+    .go:disabled { opacity: .55; cursor: wait; }
+    a.secondary {
+      display: inline-flex; align-items: center; text-decoration: none;
+      border: 1px solid var(--line); border-radius: 10px; padding: .75rem 1.15rem;
+      color: var(--ink); background: rgba(255,255,255,.03);
+    }
+    table {
+      width: 100%; border-collapse: collapse; font-size: .85rem;
+      background: rgba(0,0,0,.22); border: 1px solid var(--line); border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td { text-align: left; padding: .75rem .8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; }
+    tr:last-child td { border-bottom: 0; }
+    .tag {
+      display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .03em;
+      padding: .2rem .45rem; border-radius: 6px;
+    }
+    .safe { background: rgba(45,212,168,.15); color: var(--ok); }
+    .attack { background: rgba(255,92,122,.15); color: var(--bad); }
+    .drift { background: rgba(245,185,66,.18); color: var(--warn); }
+    .allow { color: var(--ok); font-weight: 700; }
+    .quarantine { color: var(--bad); font-weight: 700; }
+    .flash {
+      display: none; margin: 0 0 1.25rem; padding: 1rem 1.1rem; border-radius: 12px;
+      background: rgba(255,92,122,.12); border: 1px solid rgba(255,92,122,.45);
+      color: #ffc0cb; font-weight: 650;
+    }
+    .flash.show { display: block; animation: pulse .9s ease-in-out 2; }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,92,122,.0); }
+      50% { box-shadow: 0 0 0 6px rgba(255,92,122,.18); }
+    }
+    .meta { color: var(--muted); font-size: .85rem; margin-top: 1rem; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: .85em; }
+    .pipe { color: var(--muted); font-size: .8rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Agent Immune Wind Tunnel</h1>
+    <p class="sub">
+      Track 1 crash-tests Track 3's real idea: the immune system inspects
+      <em>what the agent is about to do</em>, not only what the user typed.
+      Input guard → agent proposes structured action → action guard → execute or freeze.
+    </p>
+    <p class="pipe"><code>USER → INPUT GUARD → AGENT → ACTION GUARD → EXEC / QUARANTINE</code></p>
+
+    <div class="bar">
+      <button class="go" id="runBtn" onclick="runTunnel()">Run Wind Tunnel</button>
+      <a class="secondary" href="/live">Live input test →</a>
+      <a class="secondary" href="/scorecard" target="_blank">Open quarantine_scorecard.md</a>
+    </div>
+
+    <div class="flash" id="flash">
+      [QUARANTINE] IMMUNE SYSTEM TRIGGERED: Agent frozen before execution.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th>Input Guard</th>
+          <th>Agent Action</th>
+          <th>Action Guard</th>
+          <th>Tool Executed</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        {% for r in results %}
+        <tr>
+          <td>{{ r.scenario }}</td>
+          <td class="{{ 'quarantine' if r.input_verdict == 'QUARANTINE' else 'allow' }}">{{ r.input_verdict }}</td>
+          <td><code>{{ r.proposed_action or '—' }}</code></td>
+          <td class="{{ 'quarantine' if r.action_verdict == 'QUARANTINE' else 'allow' }}">{{ r.action_verdict }}</td>
+          <td><strong>{{ r.tool_executed_label }}</strong></td>
+          <td>
+            <span class="tag {{ 'safe' if r.result == 'PASS' else ('drift' if r.result == 'CONTAINED' else 'attack') }}">
+              {{ r.result }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="color:var(--muted)">No run yet — hit <strong>Run Wind Tunnel</strong>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="meta" id="meta">
+      {% if results %}Claim to demos: every CONTAINED/BLOCKED row shows <strong>Tool Executed = No</strong> (frozen before execution).{% endif %}
+    </p>
+  </main>
+  <script>
+    function resultClass(r) {
+      if (r === 'PASS') return 'safe';
+      if (r === 'CONTAINED') return 'drift';
+      return 'attack';
+    }
+    async function runTunnel() {
+      const btn = document.getElementById('runBtn');
+      const flash = document.getElementById('flash');
+      btn.disabled = true; btn.textContent = 'Running…';
+      flash.classList.remove('show');
+      try {
+        const res = await fetch('/api/run', { method: 'POST' });
+        const data = await res.json();
+        const tbody = document.getElementById('rows');
+        tbody.innerHTML = '';
+        let sawQuarantine = false;
+        data.results.forEach((r) => {
+          if (r.verdict === 'QUARANTINE') sawQuarantine = true;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.scenario}</td>
+            <td class="${r.input_verdict === 'QUARANTINE' ? 'quarantine' : 'allow'}">${r.input_verdict}</td>
+            <td><code>${r.proposed_action || '—'}</code></td>
+            <td class="${r.action_verdict === 'QUARANTINE' ? 'quarantine' : 'allow'}">${r.action_verdict || '—'}</td>
+            <td><strong>${r.tool_executed_label}</strong></td>
+            <td><span class="tag ${resultClass(r.result)}">${r.result}</span></td>`;
+          tbody.appendChild(tr);
+        });
+        document.getElementById('meta').innerHTML =
+          'Claim to demos: every CONTAINED/BLOCKED row shows <strong>Tool Executed = No</strong> (frozen before execution).';
+        if (sawQuarantine) flash.classList.add('show');
+      } catch (e) {
+        alert('Run failed: ' + e);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Run Wind Tunnel';
+      }
+    }
+  </script>
+</body>
+</html>
