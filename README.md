@@ -13,7 +13,15 @@
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Demo%20Ready-success?style=flat-square)]()
 
-[Live Project](https://ai-project-4i3b.onrender.com)
+
+<br/>
+
+## 🚀 LIVE PROJECT
+
+### 👉 **[https://intervue-ai-navy.vercel.app/](https://intervue-ai-navy.vercel.app/)**
+
+<br/>
+
 
 **[TL;DR](#-tldr-30-second-pitch) • [The Hybrid Advantage](#-the-hybrid-advantage-why-combine-track-1--track-3) • [Quick Start](#-quick-start) • [How It Works](#-how-it-works) • [The Money-Shot Scenario](#-the-money-shot-scenario-why-this-project-matters) • [Architecture](#️-architecture) • [Demo Results](#-demo-results) • [Why This Design](#-design-decisions--why-not-just-)**
 
